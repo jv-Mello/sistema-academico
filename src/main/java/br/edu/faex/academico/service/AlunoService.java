@@ -1,3 +1,4 @@
+
 package br.edu.faex.academico.service;
 
 import br.edu.faex.academico.model.Aluno;
@@ -6,6 +7,7 @@ import br.edu.faex.academico.repository.AlunoRepository;
 import java.util.List;
 
 public class AlunoService {
+
     private AlunoRepository repository;
     private Long proximoId = 1L;
 
@@ -13,7 +15,7 @@ public class AlunoService {
         this.repository = repository;
     }
 
-    public void cadastrar(Aluno aluno){
+    public void cadastrar(Aluno aluno) {
         if (aluno.getNome() == null || aluno.getNome().isBlank()) {
             System.out.println("O nome do aluno é obrigatório.");
             return;
@@ -29,8 +31,11 @@ public class AlunoService {
             return;
         }
 
-        if (repository.listar().stream()
-                .anyMatch(a -> a.getEmail().equalsIgnoreCase(aluno.getEmail()))) {
+        boolean emailDuplicado = repository.listar().stream()
+                .anyMatch(a ->
+                        a.getEmail().equalsIgnoreCase(aluno.getEmail()));
+
+        if (emailDuplicado) {
             System.out.println("E-mail já cadastrado.");
             return;
         }
@@ -38,57 +43,67 @@ public class AlunoService {
         aluno.setId(proximoId);
         proximoId++;
 
-        this.repository.salvar(aluno);
+        repository.salvar(aluno);
         System.out.println("Aluno cadastrado com sucesso.");
     }
 
-    public List<Aluno> listar(){
+    public List<Aluno> listar() {
         return repository.listar();
     }
 
-    public Aluno buscarPorId(Long id){
-        Aluno aluno = repository.buscarPorId(id);
-        if (aluno == null){
-            System.out.println("");
-            return null;
-        }
-        return aluno;
+    public Aluno buscarPorId(Long id) {
+        return repository.buscarPorId(id);
     }
 
-    public void excluir(Long id){
+    public void excluir(Long id) {
         Aluno aluno = repository.buscarPorId(id);
-        if(aluno == null){
+
+        if (aluno == null) {
             System.out.println("Aluno não encontrado.");
             return;
         }
+
         repository.excluir(id);
         System.out.println("Aluno excluído com sucesso.");
     }
 
-    public void atualizar(Aluno alunoEditado){
+    public void atualizar(Aluno alunoEditado) {
         Aluno aluno = repository.buscarPorId(alunoEditado.getId());
-        if (aluno == null){
+
+        if (aluno == null) {
             System.out.println("Aluno não encontrado.");
             return;
         }
-        if (aluno.getNome() == null || aluno.getNome().isBlank()) {
+
+        if (alunoEditado.getNome() == null
+                || alunoEditado.getNome().isBlank()) {
             System.out.println("O nome do aluno é obrigatório.");
             return;
         }
 
-        if (aluno.getEmail() == null || aluno.getEmail().isBlank()) {
+        if (alunoEditado.getEmail() == null
+                || alunoEditado.getEmail().isBlank()) {
             System.out.println("O e-mail do aluno é obrigatório.");
             return;
         }
 
-        if (!aluno.getEmail().contains("@")) {
+        if (!alunoEditado.getEmail().contains("@")) {
             System.out.println("E-mail inválido.");
             return;
         }
+
+        boolean emailDuplicado = repository.listar().stream()
+                .anyMatch(a ->
+                        !a.getId().equals(alunoEditado.getId())
+                                && a.getEmail().equalsIgnoreCase(
+                                alunoEditado.getEmail()));
+
+        if (emailDuplicado) {
+            System.out.println("E-mail já cadastrado.");
+            return;
+        }
+
         repository.atualizar(alunoEditado);
         System.out.println("Aluno atualizado com sucesso.");
     }
-
-
-
 }
